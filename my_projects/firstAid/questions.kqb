@@ -1,0 +1,81 @@
+issue_type_question($injury)
+    What type of issue are you dealing with?
+    ---
+    $injury = select_1
+        1: No idea about the issue, I can only observe some symptoms
+        2: Cut
+        3: Burn
+        4: Fracture
+        5: Sprain
+        6: Bite
+        7: Shock
+        8: Bruise
+        9: Concussion
+        10: Allergy
+        11: Heart attack
+        12: Hypothermia
+        13: Choking
+        14: Bee Sting
+        15: Snake Bite
+
+observed_symptoms($symptom)
+    Which symptoms are observed?
+    ---
+    $symptom = select_n
+        1: Bleeding
+        2: Swelling
+        3: Bruising
+        4: Breathing Difficulty
+        5: Pain
+        6: Burning Sensation
+        7: Dizziness
+        8: Weak Pulse
+        9: Deformity
+        10: Confusion
+        11: Headache
+        12: Nausea
+        13: Chest Pain
+        14: Sweating
+        15: Shivering
+        16: Slurred Speech
+        17: Coughing
+        18: Puncture Wound
+        19: Discoloration
+
+first_aid_equipment($equipment)
+    Which first aid equipment do you have available?
+    ---
+    $equipment = select_n
+        1: Bandages
+        2: Water
+        3: Antiseptic
+        4: Pain Relief
+        5: Cold Compress
+        6: Splint
+        7: EpiPen
+        8: Ice Pack
+        9: Antihistamine
+        10: Elastic Bandage
+        11: Asprin
+        12: Dry Cloth
+        13: Non-stick gauze pad
+
+exposed_activity($activity)
+    Which of the following activities has the patient been exposed to?
+    ---
+    $activity = select_n
+        1: No idea of any exposed activities
+        2: Head injury
+        3: Cold exposure
+        4: None of the above
+     
+
+current_location($location)
+    Where are you currently located?
+    ---
+    $location = select_1
+        1: Home
+        2: Outdoor
+        3: Workplace
+        4: Sporting Event
+        5: Wilderness

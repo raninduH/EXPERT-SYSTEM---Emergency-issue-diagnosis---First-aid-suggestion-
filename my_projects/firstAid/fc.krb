@@ -1,0 +1,849 @@
+# Rules for First Aid Actions Based on User Responses
+
+# -------------cut diagnosis and treat-------------------------
+
+cut_diagnosis_heuristic
+    foreach
+        facts.issue('Cut',$cutCode) 
+        questions.issue_type_question($cutCode)          # Cut
+
+    assert 
+        facts.diagnosed_decease('Cut', 1, " ")
+
+
+cut_diagnosis_normal
+    foreach
+        #retrieving the specific codes for variables
+
+        facts.symptom('Bleeding', $bleedingCode)  
+
+        questions.issue_type_question(1) 
+        questions.observed_symptoms($symptom)  
+        check $bleedingCode in $symptom   
+
+        
+        python total_prob_of_denominator = 1
+        python conditional_prob_numerator_conditional_prob_val = 1
+
+        $issue = 'Cut'
+        $given_symptoms_list = ('Bleeding',)
+        
+        facts.probability($given_symptoms_list, $val)
+        python total_prob_of_denominator =  $val
+
+        forall
+            facts.cond_probability($given_symptom_name, $issue, $val2)
+            check $given_symptom_name in $given_symptoms_list
+            python conditional_prob_numerator_conditional_prob_val = conditional_prob_numerator_conditional_prob_val * $val2
+
+        facts.probability($issue, $issue_prob)
+
+        python uncertanity  = float($issue_prob*conditional_prob_numerator_conditional_prob_val)/total_prob_of_denominator
+        $uncertanity = float(uncertanity)
+
+    assert 
+        facts.diagnosed_decease('Cut', $uncertanity, 'Since bleeding is occuring, there is a high probability to be a cut somewhere in the body.')
+
+        
+
+cut_treat
+    foreach
+        facts.diagnosed_decease('Cut', $_, $_)          # Cut
+        facts.equipment('Bandages', $bandagesCode)
+        facts.equipment('Antiseptic', $AntisepticCode)
+
+        questions.first_aid_equipment($equipment)
+        check $bandagesCode in $equipment and $AntisepticCode in $equipment
+
+    assert 
+        facts.first_aid('Cut', "Clean the wound, apply antiseptic, and bandage it to stop bleeding.")
+
+
+
+# -------------burn diagnosis and treat-------------------------
+
+
+burn_diagnosis_heuristic
+    foreach
+        facts.issue('Burn',$burnCode) 
+        questions.issue_type_question($burnCode)          # burn
+
+    assert 
+        facts.diagnosed_decease('Burn', 1, " ")
+
+burn_diagnosis_normal
+    foreach
+        #retrieving the specific codes for variables
+
+        facts.symptom('Burning Sensation', $burningSensationCode)  
+
+        questions.issue_type_question(1)          # Burn
+        questions.observed_symptoms($symptom)
+        check $burningSensationCode in $symptom
+
+        #facts.cond_probability('Burn', ('Burning Sensation',), $uncertanity)
+
+        python total_prob_of_denominator = 1
+        python conditional_prob_numerator_conditional_prob_val = 1
+
+        $issue = 'Burn'
+        $given_symptoms_list = ('Burning Sensation',)
+
+        facts.probability($given_symptoms_list, $val)
+        python total_prob_of_denominator =  $val
+
+
+        forall
+            facts.cond_probability($given_symptom_name, $issue, $val2)
+            check $given_symptom_name in $given_symptoms_list
+            python conditional_prob_numerator_conditional_prob_val = conditional_prob_numerator_conditional_prob_val * $val2
+
+        facts.probability($issue, $issue_prob)
+
+        python uncertanity  = float($issue_prob*conditional_prob_numerator_conditional_prob_val)/total_prob_of_denominator
+        $uncertanity = float(uncertanity)
+        
+
+    assert 
+        facts.diagnosed_decease('Burn', $uncertanity, 'Because a burning sensatiton implies that the body was exposed to some unencessary heat.')
+
+burn_treat
+    foreach
+
+        facts.equipment('Water', $waterCode)
+
+        facts.diagnosed_decease('Burn', $_, $_)
+
+        questions.first_aid_equipment($equipment)
+        check $waterCode in $equipment
+
+    assert 
+        facts.first_aid('Burn', "Cool the burn under running water for 10 minutes and cover with a sterile dressing.")
+
+burn_treat_alternative
+    foreach
+
+        facts.equipment('Dry Cloth', $dryClothCode)
+        facts.equipment('Non-stick gauze pad', $nonStickGauzeCode)
+
+        facts.diagnosed_decease('Burn', $_, $_)
+
+        questions.first_aid_equipment($equipment)
+        check $dryClothCode in $equipment or $nonStickGauzeCode in $equipment
+
+    assert 
+        facts.first_aid('Burn', 'Cover the burn with a clean, dry cloth (or a non-stick gauze pad). Avoid using  ointments on severe burns to prevent shock. Keep the person warm and calm while waiting for emergency services.')
+
+# -------------fracture diagnosis and treat-------------------------
+
+fracture_diagnosis_heuristic
+    foreach
+        facts.issue('Fracture',$fractureCode) 
+        questions.issue_type_question($fractureCode)          # Fracture
+
+    assert 
+        facts.diagnosed_decease('Fracture',1, " ")
+
+fracture_diagnosis_normal_one
+    foreach
+        #retrieving the specific codes for variables
+
+        facts.symptom('Swelling', $swellingCode)  
+        facts.symptom('Pain', $painCode) 
+        facts.symptom('Deformity', $deformityCode)
+        
+        questions.issue_type_question(1)
+
+        questions.observed_symptoms($symptom)
+        check $painCode in $symptom and $swellingCode in $symptom and $deformityCode in $symptom
+
+        #facts.cond_probability('Fracture', ('Swelling','Pain', 'Deformity',), $uncertanity)
+
+        python total_prob_of_denominator = 1
+        python conditional_prob_numerator_conditional_prob_val = 1
+
+        $issue = 'Fracture'
+        $given_symptoms_list = ('Swelling','Pain','Deformity',)
+        
+        facts.probability($given_symptoms_list, $val)
+        python total_prob_of_denominator =  $val
+
+        forall
+            facts.cond_probability($given_symptom_name, $issue, $val2)
+            check $given_symptom_name in $given_symptoms_list
+            python conditional_prob_numerator_conditional_prob_val = conditional_prob_numerator_conditional_prob_val * $val2
+
+        facts.probability($issue, $issue_prob)
+
+        python uncertanity  = float($issue_prob*conditional_prob_numerator_conditional_prob_val)/total_prob_of_denominator
+        $uncertanity = float(uncertanity)
+    assert 
+        facts.diagnosed_decease('Fracture',$uncertanity,'This diagnosis was made because the observed symptoms of swelling, pain, and deformity strongly suggest a fracture based on their conditional probabilities.')
+
+fracture_diagnosis_normal_two
+    foreach
+        # Retrieving the specific codes for variables
+        facts.symptom('Swelling', $swellingCode)  
+        facts.symptom('Pain', $painCode) 
+        facts.symptom('Deformity', $deformityCode)  # deformity NOT IN is chekced in this rule
+        
+        questions.issue_type_question(1)
+
+        questions.observed_symptoms($symptom)
+        check $painCode in $symptom and $swellingCode in $symptom and $deformityCode not in $symptom
+
+        #facts.cond_probability('Fracture', ('Swelling','Pain',), $uncertanity)
+
+        python total_prob_of_denominator = 1
+        python conditional_prob_numerator_conditional_prob_val = 1
+
+        $issue = 'Fracture'
+        $given_symptoms_list = ('Swelling','Pain',)
+        
+        facts.probability($given_symptoms_list, $val)
+        python total_prob_of_denominator =  $val
+
+        forall
+            facts.cond_probability($given_symptom_name, $issue, $val2)
+            check $given_symptom_name in $given_symptoms_list
+            python conditional_prob_numerator_conditional_prob_val = conditional_prob_numerator_conditional_prob_val * $val2
+
+        facts.probability($issue, $issue_prob)
+
+        python uncertanity  = float($issue_prob*conditional_prob_numerator_conditional_prob_val)/total_prob_of_denominator
+        $uncertanity = float(uncertanity) 
+     
+    assert 
+        facts.diagnosed_decease('Fracture', $uncertanity, 'This diagnosis was made because the observed symptoms of swelling and bruising are commonly associated with fractures, as indicated by their conditional probabilities.')
+
+fracture_treat_1
+    foreach
+        facts.equipment('Splint', $splintCode)
+        facts.equipment('Ice Pack', $icePackCode)
+
+        facts.diagnosed_decease('Fracture', $_, $_)
+
+        questions.first_aid_equipment($equipment)
+        check $splintCode in $equipment and $icePackCode not in $equipment
+
+    assert 
+        facts.first_aid('Fracture', "Immobilize the limb using a splint and seek medical help immediately. Try to find an ice pack and apply to reduce swelling")
+
+fracture_treat_two
+    foreach
+
+        facts.equipment('Splint', $splintCode)
+        facts.equipment('Ice Pack', $icePackCode)
+
+        facts.diagnosed_decease('Fracture', $_, $_)
+
+        questions.first_aid_equipment($equipment)
+        check $splintCode in $equipment
+        check $icePackCode in $equipment
+         
+    assert
+        facts.first_aid('Fracture', "Immobilize the area using a splint, apply an ice pack to reduce swelling, and seek medical attention.")
+
+
+# -------------shock diagnosis and treat-------------------------
+
+shock_diagnosis_heuristic
+    foreach
+        facts.issue('Shock',$shockCode) 
+        questions.issue_type_question($shockCode)          # Shock
+
+    assert 
+        facts.diagnosed_decease('Shock', 1, " ")
+
+shock_diagnosis_normal
+    foreach
+        #retrieving the specific codes for variables
+
+        facts.symptom('Dizziness', $dizzinessCode)  
+        facts.symptom('Weak Pulse', $weak_pulseCode) 
+
+        questions.issue_type_question(1)          
+        questions.observed_symptoms($symptom)
+        check $dizzinessCode in $symptom and $weak_pulseCode in $symptom
+
+        #facts.cond_probability('Shock', ('Dizziness','Weak Pulse',), $uncertanity)
+
+        python total_prob_of_denominator = 1
+        python conditional_prob_numerator_conditional_prob_val = 1
+
+        $issue = 'Shock'
+        $given_symptoms_list = ('Dizziness','Weak Pulse',)
+        
+        facts.probability($given_symptoms_list, $val)
+        python total_prob_of_denominator =  $val
+
+        forall
+            facts.cond_probability($given_symptom_name, $issue, $val2)
+            check $given_symptom_name in $given_symptoms_list
+            python conditional_prob_numerator_conditional_prob_val = conditional_prob_numerator_conditional_prob_val * $val2
+
+        facts.probability($issue, $issue_prob)
+
+        python uncertanity  = float($issue_prob*conditional_prob_numerator_conditional_prob_val)/total_prob_of_denominator
+        $uncertanity = float(uncertanity) 
+    assert 
+        facts.diagnosed_decease('Shock', $uncertanity, 'Due to the patient having Dizziness followed by Weak pulse it is a high likelihood that the patient is suffering from a shock.')
+
+shock_treat
+    foreach
+        
+        facts.diagnosed_decease('Shock', $_, $_)
+
+    assert 
+        facts.first_aid('Shock', "Lay the person down, keep them warm, and elevate their legs if possible.")
+
+
+# -------------concussion diagnosis and treat-------------------------
+
+concussion_diagnosis_heuristic
+    foreach
+        facts.issue('Concussion',$concussionCode)
+        questions.issue_type_question($concussionCode)          # Concussion
+
+    assert 
+        facts.diagnosed_decease('Concussion', 1, " ")
+
+concussion_diagnosis_normal_one
+    foreach
+        facts.activity('Head injury', $headInjuryCode)
+        facts.symptom('Confusion', $confusionCode)
+        facts.symptom('Headache', $headacheCode)
+        facts.symptom('Nausea', $nauseaCode)
+        
+        questions.issue_type_question(1)
+
+        questions.observed_symptoms($symptom)
+        check $confusionCode in $symptom and $headacheCode in $symptom
+        check $nauseaCode in $symptom
+
+        questions.exposed_activity($activity)
+        check $headInjuryCode in $activity
+
+        facts.cond_probability('Concussion', ('Head injury','Confusion','Headache','Nausea',), $uncertanity)
+
+
+    assert
+        facts.diagnosed_decease('Concussion', $uncertanity, 'Because the patient had an Head injury and shoecases symptoms like confusion, headache and Nause')
+
+# when no idea about the head injury
+concussion_diagnosis_normal_two
+    foreach
+        facts.activity('No idea',$noIdeaInjuryCode)
+        facts.symptom('Confusion', $confusionCode)
+        facts.symptom('Headache', $headacheCode)
+        facts.symptom('Nausea', $nauseaCode)
+
+        
+        questions.issue_type_question(1)
+
+        
+        questions.observed_symptoms($symptom)
+        check $confusionCode in $symptom and $headacheCode in $symptom
+        check $nauseaCode in $symptom
+
+        questions.exposed_activity($activity)
+        check $noIdeaInjuryCode in $activity
+
+        facts.cond_probability('Concussion', ('Confusion','Headache','Nausea',), $uncertanity)
+    assert
+        facts.diagnosed_decease('Concussion', $uncertanity, 'Even though you are not sure about patients head injury, still due to showcasing of symptoms like confusion, headache and Nausea, concussion might be the case.')
+
+# when no idea about Nausea
+concussion_diagnosis_normal_three
+    foreach
+        facts.activity('Head injury', $headInjuryCode)
+        facts.symptom('Confusion', $confusionCode)
+        facts.symptom('Headache', $headacheCode)
+        facts.symptom('Nausea', $nauseaCode)
+        
+        questions.issue_type_question(1)
+
+        questions.exposed_activity($activity)
+        check $headInjuryCode in $activity
+
+        questions.observed_symptoms($symptom)
+        check $confusionCode in $symptom and $headacheCode in $symptom and $nauseaCode not in $symptom
+
+        facts.cond_probability('Concussion', ('Head injury','Confusion','Headache',), $uncertanity)
+
+    assert
+        facts.diagnosed_decease('Concussion', $uncertanity, 'Because the patient had an Head injury and shoecases symptoms like confusion and headache')
+
+
+concussion_treat_normal
+    foreach
+        facts.diagnosed_decease('Concussion', $_, $_)
+
+    assert 
+        facts.first_aid('Concussion', "Keep the person awake, avoid giving food and drink and seek medical attention immediately.")
+
+
+#-------------------- bee sting diagnosis and treat --------------------------------
+bee_sting_diagnosis_heuristic
+    foreach
+        facts.issue('Bee Sting', $beeStingCode)
+        questions.issue_type_question($beeStingCode)  # Bee Sting
+
+    assert 
+        facts.diagnosed_decease('Bee Sting', 1, " ")
+
+bee_sting_diagnosis_normal
+    foreach
+        facts.symptom('Swelling', $swellingCode)  
+        facts.symptom('Pain', $painCode) 
+        
+        questions.issue_type_question(1)
+
+        questions.observed_symptoms($symptom)
+        check $painCode in $symptom and $swellingCode in $symptom 
+
+        #facts.cond_probability('Bee Sting', ('Swelling','Pain',), $uncertanity)
+
+        python total_prob_of_denominator = 1
+        python conditional_prob_numerator_conditional_prob_val = 1
+
+        $issue = 'Bee Sting'
+        $given_symptoms_list = ('Swelling','Pain',)
+        
+        facts.probability($given_symptoms_list, $val)
+        python total_prob_of_denominator =  $val
+
+        forall
+            facts.cond_probability($given_symptom_name, $issue, $val2)
+            check $given_symptom_name in $given_symptoms_list
+            python conditional_prob_numerator_conditional_prob_val = conditional_prob_numerator_conditional_prob_val * $val2
+
+        facts.probability($issue, $issue_prob)
+
+        python uncertanity  = float($issue_prob*conditional_prob_numerator_conditional_prob_val)/total_prob_of_denominator
+        $uncertanity = float(uncertanity) 
+
+    assert 
+        facts.diagnosed_decease('Bee Sting', $uncertanity, 'Because the patient showcases the symptoms of Swelling followed by pain')
+
+bee_sting_treat
+    foreach
+        #facts.active_diagnosis(bee_sting)        # Bee Sting
+        facts.equipment('Ice Pack', $icePackCode)
+        facts.equipment('Antihistamine', $antihistamineCode)
+
+        questions.first_aid_equipment($equipment)
+        check $icePackCode in $equipment and $antihistamineCode in $equipment
+
+        facts.diagnosed_decease('Bee Sting', $_, $_) 
+
+    assert 
+        facts.first_aid('Bee Sting', "Remove the stinger, apply an ice pack to reduce swelling, and take an antihistamine if needed.")
+
+
+
+# -------------allergy diagnosis and treat-------------------------
+
+allergic_diagnosis_heuristic
+    foreach
+        facts.issue('Allergy', $allergyCode)
+        questions.issue_type_question($allergyCode)          # Allergy
+
+    assert 
+        facts.diagnosed_decease('Allergy', 1, " ")
+
+allergic_diagnosis_normal_one
+    foreach
+        facts.symptom('Swelling', $swellingCode)
+        facts.symptom('Breathing Difficulty', $breathingDifficultyCode)
+        facts.symptom('Chest Pain', $chestPainCode)
+
+
+        questions.issue_type_question(1)         
+
+        questions.observed_symptoms($symptom)
+        check $swellingCode in $symptom and $breathingDifficultyCode in $symptom and $chestPainCode in $symptom
+
+        #facts.cond_probability('Allergy', ('Swelling','Breathing Difficulty','Chest Pain',), $uncertanity)
+
+        python total_prob_of_denominator = 1
+        python conditional_prob_numerator_conditional_prob_val = 1
+
+        $issue = 'Allergy'
+        $given_symptoms_list = ('Swelling','Breathing Difficulty','Chest Pain',)
+        
+        facts.probability($given_symptoms_list, $val)
+        python total_prob_of_denominator =  $val
+
+        forall
+            facts.cond_probability($given_symptom_name, $issue, $val2)
+            check $given_symptom_name in $given_symptoms_list
+            python conditional_prob_numerator_conditional_prob_val = conditional_prob_numerator_conditional_prob_val * $val2
+
+        facts.probability($issue, $issue_prob)
+
+        python uncertanity  = float($issue_prob*conditional_prob_numerator_conditional_prob_val)/total_prob_of_denominator
+        $uncertanity = float(uncertanity) 
+
+    assert
+        facts.diagnosed_decease('Allergy', $uncertanity, 'Because the patient is showcasing Swelings followed by breathing difficulty and heart pain')
+
+allergic_diagnosis_normal_two
+    foreach
+        facts.symptom('Swelling', $swellingCode)
+        facts.symptom('Breathing Difficulty', $breathingDifficultyCode)
+        facts.symptom('Chest Pain', $chestPainCode)  # chesst pain not in is checked here
+
+        questions.issue_type_question(1)         
+
+        questions.observed_symptoms($symptom)
+        check $swellingCode in $symptom and $breathingDifficultyCode in $symptom and $chestPainCode not in $symptom
+
+        #facts.cond_probability('Allergy', ('Swelling','Breathing Difficulty',), $uncertanity)
+
+        python total_prob_of_denominator = 1
+        python conditional_prob_numerator_conditional_prob_val = 1
+
+        $issue = 'Allergy'
+        $given_symptoms_list = ('Swelling','Breathing Difficulty',)
+        
+        facts.probability($given_symptoms_list, $val)
+        python total_prob_of_denominator =  $val
+
+        forall
+            facts.cond_probability($given_symptom_name, $issue, $val2)
+            check $given_symptom_name in $given_symptoms_list
+            python conditional_prob_numerator_conditional_prob_val = conditional_prob_numerator_conditional_prob_val * $val2
+
+        facts.probability($issue, $issue_prob)
+
+        python uncertanity  = float($issue_prob*conditional_prob_numerator_conditional_prob_val)/total_prob_of_denominator
+        $uncertanity = float(uncertanity) 
+
+    assert
+        facts.diagnosed_decease('Allergy', $uncertanity, 'Because the patient is showcasing Swelings followed by breathing difficulty')
+
+allergic_treat_normal
+    foreach
+        facts.equipment('EpiPen', $epipenCode)
+
+        facts.diagnosed_decease('Allergy', $_, $_)
+
+        questions.first_aid_equipment($equipment)
+        check $epipenCode in $equipment
+
+    assert 
+        facts.first_aid('Allergy', "Administer epinephrine via an EpiPen and seek emergency medical help.")
+
+allergic_treat_normal_alt
+    foreach
+        facts.equipment('EpiPen', $epipenCode)
+
+        facts.diagnosed_decease('Allergy', $_, $_)
+
+        questions.first_aid_equipment($equipment)
+        check $epipenCode not in $equipment
+
+    assert 
+        facts.first_aid('Allergy', "If an EpiPen isn’t available or expired, remove the person from the allergen source immediately. Encourage them to remain calm and still to reduce the spread of the reaction while contacting emergency services.")
+
+
+
+# -------------heart attack diagnosis and treat-------------------------
+
+heart_attack__diagnosis_heuristic
+    foreach
+        facts.issue('Heart Attack', $heartAttackCode)
+        questions.issue_type_question($heartAttackCode)          # Haert Attack
+
+
+    assert 
+        facts.diagnosed_decease('Heart Attack', 1, " ")
+
+heart_attack_diagnosis
+    foreach
+        facts.symptom('Chest Pain', $chestPainCode)
+        facts.symptom('Pain', $painCode)
+        facts.symptom('Breathing Difficulty', $breathingDiffucltyCode)
+        facts.symptom('Sweating', $sweatingCode)
+
+        questions.issue_type_question(1)
+        
+        questions.observed_symptoms($symptom)
+        check $painCode in $symptom and $breathingDiffucltyCode in $symptom
+        check $sweatingCode in $symptom and $chestPainCode in $symptom 
+
+        facts.cond_probability('Heart Attack', ('Chest Pain','Pain','Breathing Difficulty','Sweating',), $uncertanity)
+    assert
+        facts.diagnosed_decease('Heart Attack', $uncertanity, 'Because Chest pain followed by Shortness of Breath and sweating are major symptoms of a heart attack')
+
+
+heart_attack_treatement
+    foreach
+
+        facts.diagnosed_decease('Heart Attack', $_, $_)
+
+    assert 
+        facts.first_aid('Heart Attack', "Call emergency services and keep the person calm.")
+
+
+heart_attack_treatement_alternative_one
+    foreach
+        facts.equipment('Asprin', $asprinCode)
+        facts.diagnosed_decease('Heart Attack', $_, $_)
+
+        questions.first_aid_equipment($equipment)
+        check $asprinCode in $equipment
+
+    assert 
+        facts.first_aid('Heart Attack', "Call emergency services immediately. Loosen tight clothing, and if they are conscious and not allergic, offer aspirin to chew while waiting for help. Do not allow them to eat or drink. Monitor their breathing and pulse.")
+
+
+
+# -------------hypothermia diagnosis and treat-------------------------
+
+hyporthermia_diagnosis_heuristic
+    foreach
+        facts.issue('Hypothermia', $hypothermiaCode)
+        questions.issue_type_question($hypothermiaCode)          # Hypothermia
+
+
+    assert 
+        facts.diagnosed_decease('Hypothermia', 1, " ")
+
+hypothermia_diagnosis_normal
+    foreach
+        facts.activity('Cold exposure', $coldExposureCode)
+        facts.symptom('Shivering', $shiveringCode)
+        facts.symptom('Slurred Speech', $slurredSpeechCode)
+        facts.symptom('Confusion', $confusionCode)
+
+        questions.issue_type_question(1)
+
+        questions.exposed_activity($activites)
+        check $coldExposureCode in $activites
+
+        questions.observed_symptoms($symptom)
+        check $shiveringCode in $symptom and $slurredSpeechCode in $symptom
+        check $confusionCode in $symptom
+
+        facts.cond_probability('Hypothermia', ('Cold exposure','Shivering','Slurred Speech','Confusion',), $uncertanity)
+
+    assert
+        facts.diagnosed_decease('Hypothermia', $uncertanity, 'Because the patient who was experienced some cold exposure is showcasing symptoms like Shivering, slurred speech and confusion.')
+
+hyporthermia_treat_normal
+    foreach
+
+        facts.diagnosed_decease('Hypothermia', $_, $_)
+
+    assert 
+        facts.first_aid('Hypothermia', "Wrap the person in layers of available clothing, focusing on their head and neck. Use body heat if necessary by staying close. Avoid applying external heat sources directly to prevent shock.")
+
+
+
+
+
+# -------------choking diagnosis and treat-------------------------
+
+choking_diagnosis_heuristic
+    foreach
+        facts.issue('Choking', $chokingCode)
+        questions.issue_type_question($chokingCode)          # Choking
+
+    assert 
+        facts.diagnosed_decease('Choking', 1, " ")
+
+choking_diagnosis_normal
+    foreach
+        facts.symptom('Breathing Difficulty', $breathingDifficultyCode)
+        facts.symptom('Coughing', $coughingCode)
+
+        questions.issue_type_question(1)
+        
+        questions.observed_symptoms($symptom)
+        check $breathingDifficultyCode in $symptom and $coughingCode in $symptom
+
+        #facts.cond_probability('Choking', ('Breathing Difficulty','Coughing',), $uncertanity)
+
+        python total_prob_of_denominator = 1
+        python conditional_prob_numerator_conditional_prob_val = 1
+
+        $issue = 'Choking'
+        $given_symptoms_list = ('Coughing','Breathing Difficulty',)
+        
+        facts.probability($given_symptoms_list, $val)
+        python total_prob_of_denominator =  $val
+
+        forall
+            facts.cond_probability($given_symptom_name, $issue, $val2)
+            check $given_symptom_name in $given_symptoms_list
+            python conditional_prob_numerator_conditional_prob_val = conditional_prob_numerator_conditional_prob_val * $val2
+
+        facts.probability($issue, $issue_prob)
+
+        python uncertanity  = float($issue_prob*conditional_prob_numerator_conditional_prob_val)/total_prob_of_denominator
+        $uncertanity = float(uncertanity)         
+
+    assert
+        facts.diagnosed_decease('Choking', $uncertanity, 'Because the patient is Coughing and showing breathing diffculties')
+
+choking_treat_normal
+    foreach
+
+        facts.diagnosed_decease('Choking', $_, $_)
+
+    assert 
+        facts.first_aid('Choking', "Perform the Heimlich maneuver and seek emergency medical help if the obstruction is not cleared.")
+
+choking_treat_alt
+    foreach
+
+        facts.diagnosed_decease('Choking', $_, $_)
+
+    assert 
+        facts.first_aid('Choking', "lean the person forward and firmly strike their back between the shoulder blades with the palm of your hand. Repeat up to five times or until the object is expelled.")
+
+
+#----------------------------snake bit diagnosis and trear------------------------------------------
+
+snake_bite_diagnosis_heuristic
+    foreach
+        facts.issue('Snake Bite', $snakeBiteCode)
+        questions.issue_type_question($snakeBiteCode)  # Snake Bite
+
+    assert 
+        facts.diagnosed_decease('Snake Bite', 1, " ")
+
+snake_bite_diagnosis_normal
+    foreach
+        facts.symptom('Puncture Wound', $punctureCode)
+        facts.symptom('Swelling', $swellingCode)
+        facts.symptom('Discoloration', $discolorationCode)
+
+        questions.issue_type_question(1)  # General Question about Bites
+        questions.observed_symptoms($symptom)
+        check $punctureCode in $symptom and $swellingCode in $symptom and $discolorationCode in $symptom
+
+        #facts.cond_probability('Snake Bite', ('Puncture Wound','Swelling','Discoloration',), $uncertanity)
+
+        python total_prob_of_denominator = 1
+        python conditional_prob_numerator_conditional_prob_val = 1
+
+        $issue = 'Snake Bite'
+        $given_symptoms_list = ('Puncture Wound','Swelling','Discoloration',)
+        
+        facts.probability($given_symptoms_list, $val)
+        python total_prob_of_denominator =  $val
+
+        forall
+            facts.cond_probability($given_symptom_name, $issue, $val2)
+            check $given_symptom_name in $given_symptoms_list
+
+            python conditional_prob_numerator_conditional_prob_val = conditional_prob_numerator_conditional_prob_val * $val2
+
+        facts.probability($issue, $issue_prob)
+
+        python uncertanity  = float($issue_prob*conditional_prob_numerator_conditional_prob_val)/total_prob_of_denominator
+        $uncertanity = float(uncertanity) 
+
+    assert 
+        facts.diagnosed_decease('Snake Bite',  $uncertanity, 'Because the patient has a puncure wound, swellings and  discoloration')
+
+snake_bite_treat
+    foreach
+        facts.diagnosed_decease('Snake Bite', $_, $_)         # Snake Bite
+        facts.equipment('Elastic Bandage', $elasticBandageCode)
+
+        questions.first_aid_equipment($equipment)
+        check $elasticBandageCode in $equipment
+
+    assert 
+        facts.first_aid('Snake Bite', "Keep the bite area immobilized below heart level, apply a loose elastic bandage above the bite to slow venom spread, and seek immediate medical help.")
+
+
+snake_bite_treat_alt_one
+    foreach
+        facts.diagnosed_decease('Snake Bite', $_, $_)         # Snake Bite
+        facts.equipment('Ice Pack', $icePackCode)
+
+        questions.first_aid_equipment($equipment)
+        check $icePackCode in $equipment
+
+    assert 
+        facts.first_aid('Snake Bite', "AVOID applying ice or suctioning venom. Focus on keeping the person calm while awaiting medical help")
+
+snake_bite_treat_alt_two
+    foreach
+        facts.diagnosed_decease('Snake Bite', $_, $_)         # Snake Bite
+
+
+    assert 
+        facts.first_aid('Snake Bite', "Keep the person as still as possible, and use any available materials to create a sling to immobilize the affected limb.")
+
+#-------------------find_missing_equipment---------------------------
+find_missing_equipment
+    foreach
+        facts.diagnosed_decease($issue, $_, $_) 
+        facts.issue_to_equipment($issue, $required_equipments_code_list)
+        questions.first_aid_equipment($having_equipments_code_list)
+
+        python required_equipments_code_list = []
+        forall
+            facts.issue_to_equipment($issue, $required_equipments_code)
+            python required_equipments_code_list.append($required_equipments_code)
+
+
+        python having_equipments = []
+        forall
+            facts.equipment($equipment, $equipmentCode)
+            check $equipmentCode in $having_equipments_code_list
+            python having_equipments.append($equipment)
+        
+        python required_equipment_list = []
+        forall
+            facts.equipment($equipment, $equipmentCode)
+            check $equipmentCode in required_equipments_code_list
+            python required_equipment_list.append($equipment)
+
+        python missing_equip_list = [item for item in required_equipment_list if item not in having_equipments]
+        $missing_equip_list = list(missing_equip_list)
+    assert
+        facts.missing_equipment($issue, $missing_equip_list)
+
+
+# Location-Based Guidance Rules
+
+outdoor_cut_guidance
+    foreach
+        #retrieving the specific codes for variables
+
+        facts.issue('Cut',$cutCode) 
+        facts.location_to_code('Outdoor', $outdoorCode)
+
+        questions.current_location($outdoorCode)          # Outdoor
+        facts.diagnosed_decease('Cut', $_, $_)          # Cut
+    assert 
+        facts.location_advice('Cut', "In outdoor locations, ensure the area is safe from further injury sources and sanitize hands if possible before administering first aid.")
+
+workplace_burn_guidance
+    foreach
+        #retrieving the specific codes for variables
+
+        facts.issue('Burn',$burnCode) 
+        facts.location_to_code('Workplace', $workplaceCode)
+
+        questions.current_location(3)              # Workplace
+        facts.diagnosed_decease('Burn', $_, $_)           # Burn
+    assert 
+        facts.location_advice('Burn', "In the workplace, assess any surrounding hazards, and contact the onsite medical team if available.")
+
+wilderness_fracture_guidance
+    foreach
+        facts.issue('Fracture',$fractureCode) 
+        facts.location_to_code('Wilderness', $wildernessCode)
+
+        questions.current_location($wildernessCode)
+        facts.diagnosed_decease('Fracture', $_, $_) 
+    assert 
+        facts.location_advice('Fracture', "In wilderness settings, prioritize stabilization and signaling for help. Use available materials like tree branches or hiking poles as improvised splints. Minimize movement to prevent further injury.")

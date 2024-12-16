@@ -1,0 +1,526 @@
+
+# ------------- cut diagnosis -------------------------
+
+cut_diagnosis_heuristic  
+    use diagnosed_decease('Cut', 1, " ")  
+    when  
+        facts.issue('Cut', $cutCode)  
+        questions.issue_type_question($cutCode)  # Cut  
+
+
+cut_diagnosis_normal  
+    use diagnosed_decease('Cut', $uncertanity, $reason)  
+    when  
+        # Retrieving the specific codes for variables  
+        facts.symptom('Bleeding', $bleedingCode)  
+
+        questions.issue_type_question(1)  
+        questions.observed_symptoms($symptom)  
+        check $bleedingCode in $symptom  
+
+        bc_cond_prob('Cut', ('Bleeding',), $uncertanity)
+
+        $reason = 'Since bleeding is occurring, there is a high probability to be a cut somewhere in the body.'
+
+cut_treat_aid
+    use first_aid('Cut', "Clean the wound, apply antiseptic, and bandage it to stop bleeding.")
+    when
+        facts.equipment('Bandages', $bandagesCode)
+        facts.equipment('Antiseptic', $AntisepticCode)
+        questions.first_aid_equipment($equipment)
+        check $bandagesCode in $equipment and $AntisepticCode in $equipment
+
+
+# ------------- burn diagnosis -------------------------
+
+
+burn_diagnosis_heuristic  
+    use diagnosed_decease('Burn', 1, " ")  
+    when  
+        facts.issue('Burn', $burnCode)  
+        questions.issue_type_question($burnCode)  # Burn  
+
+
+burn_diagnosis_normal  
+    use diagnosed_decease('Burn', $uncertanity, $reason)  
+    when  
+        # Retrieving the specific codes for variables  
+        facts.symptom('Burning Sensation', $burningSensationCode)  
+
+        questions.issue_type_question(1)  # Burn  
+        questions.observed_symptoms($symptom)  
+        check $burningSensationCode in $symptom  
+
+
+        $issue = 'Burn'  
+        $given_symptoms_list = ('Burning Sensation',)  
+
+        bc_cond_prob($issue, $given_symptoms_list, $uncertanity)
+
+        $reason = 'Because a burning sensation implies that the body was exposed to some unnecessary heat.'  
+
+
+burn_treat_advice
+    use first_aid('Burn', "Cool the burn under running water for 10 minutes and cover with a sterile dressing.")
+    when
+        facts.equipment('Water', $waterCode)
+        questions.first_aid_equipment($equipment)
+        check $waterCode in $equipment
+
+burn_treat_alternative_advice
+    use first_aid('Burn', "Cover the burn with a clean, dry cloth (or a non-stick gauze pad). Avoid using ointments on severe burns to prevent shock. Keep the person warm and calm while waiting for emergency services.")
+    when
+        facts.equipment('Dry Cloth', $dryClothCode)
+        facts.equipment('Non-stick gauze pad', $nonStickGauzeCode)
+        questions.first_aid_equipment($equipment)
+        check $dryClothCode in $equipment or $nonStickGauzeCode in $equipment
+
+
+# ------------- fracture diagnosis -------------------------
+
+
+fracture_diagnosis_heuristic  
+    use diagnosed_decease('Fracture', 1, " ")  
+    when  
+        facts.issue('Fracture', $fractureCode)  
+        questions.issue_type_question($fractureCode)  # Fracture  
+
+
+fracture_diagnosis_normal_one  
+    use diagnosed_decease('Fracture', $uncertanity, $reason)  
+    when  
+        # Retrieving the specific codes for variables  
+        facts.symptom('Swelling', $swellingCode)  
+        facts.symptom('Pain', $painCode)  
+        facts.symptom('Deformity', $deformityCode)  
+
+        questions.issue_type_question(1)  
+        questions.observed_symptoms($symptom)  
+        check $painCode in $symptom and $swellingCode in $symptom and $deformityCode in $symptom  
+
+        $issue = 'Fracture'  
+        $given_symptoms_list = ('Swelling', 'Pain', 'Deformity')  
+
+        bc_cond_prob($issue, $given_symptoms_list, $uncertanity)
+
+        $reason = 'This diagnosis was made because the observed symptoms of swelling, pain, and deformity strongly suggest a fracture based on their conditional probabilities.'  
+
+
+fracture_diagnosis_normal_two  
+    use diagnosed_decease('Fracture', $uncertanity, $reason)  
+    when  
+        # Retrieving the specific codes for variables  
+        facts.symptom('Swelling', $swellingCode)  
+        facts.symptom('Pain', $painCode)  
+        facts.symptom('Deformity', $deformityCode)  # Deformity NOT IN is checked in this rule  
+
+        questions.issue_type_question(1)  
+        questions.observed_symptoms($symptom)  
+        check $painCode in $symptom and $swellingCode in $symptom and $deformityCode not in $symptom  
+
+        $issue = 'Fracture'  
+        $given_symptoms_list = ('Swelling', 'Pain')  
+
+        bc_cond_prob($issue, $given_symptoms_list, $uncertanity) 
+
+        $reason = 'This diagnosis was made because the observed symptoms of swelling and bruising are commonly associated with fractures, as indicated by their conditional probabilities.'  
+
+
+# ------------- shock diagnosis -------------------------
+
+shock_diagnosis_heuristic  
+    use diagnosed_decease('Shock', 1, " ")  
+    when  
+        facts.issue('Shock', $shockCode)  
+        questions.issue_type_question($shockCode)  # Shock  
+
+shock_diagnosis_normal  
+    use diagnosed_decease('Shock', $uncertanity, $reason)  
+    when  
+        # Retrieving the specific codes for variables  
+        facts.symptom('Dizziness', $dizzinessCode)  
+        facts.symptom('Weak Pulse', $weak_pulseCode)  
+
+        questions.issue_type_question(1)  
+        questions.observed_symptoms($symptom)  
+        check $dizzinessCode in $symptom and $weak_pulseCode in $symptom  
+
+        $issue = 'Shock'  
+        $given_symptoms_list = ('Dizziness', 'Weak Pulse')  
+
+        bc_cond_prob($issue, $given_symptoms_list, $uncertanity)
+
+        $reason = 'Due to the patient having Dizziness followed by Weak pulse, it is a high likelihood that the patient is suffering from shock.'  
+
+
+# ------------- concussion diagnosis -------------------------
+
+concussion_diagnosis_heuristic  
+    use diagnosed_decease('Concussion', 1, " ")  
+    when  
+        facts.issue('Concussion', $concussionCode)  
+        questions.issue_type_question($concussionCode)  # Concussion  
+
+
+concussion_diagnosis_normal_one  
+    use diagnosed_decease('Concussion', $uncertanity, $reason)  
+    when  
+        facts.activity('Head injury', $headInjuryCode)  
+        facts.symptom('Confusion', $confusionCode)  
+        facts.symptom('Headache', $headacheCode)  
+        facts.symptom('Nausea', $nauseaCode)  
+
+        questions.issue_type_question(1)  
+
+        questions.observed_symptoms($symptom)  
+        check $confusionCode in $symptom and $headacheCode in $symptom  
+        check $nauseaCode in $symptom  
+
+        questions.exposed_activity($activity)  
+        check $headInjuryCode in $activity  
+
+        $issue = 'Concussion'  
+        $given_symptoms_list = ('Head injury', 'Confusion', 'Headache', 'Nausea',) 
+
+        bc_cond_prob($issue, $given_symptoms_list, $uncertanity)
+
+        $reason = 'Because the patient had a head injury and showcases symptoms like confusion, headache, and nausea.'  
+
+# No idea about head injury
+concussion_diagnosis_normal_two  
+    use diagnosed_decease('Concussion', $uncertanity, $reason)  
+    when  
+        facts.activity('No idea', $noIdeaInjuryCode)  
+        facts.symptom('Confusion', $confusionCode)  
+        facts.symptom('Headache', $headacheCode)  
+        facts.symptom('Nausea', $nauseaCode)  
+
+        questions.issue_type_question(1)  
+
+        questions.observed_symptoms($symptom)  
+        check $confusionCode in $symptom and $headacheCode in $symptom  
+        check $nauseaCode in $symptom  
+
+        questions.exposed_activity($activity)  
+        check $noIdeaInjuryCode in $activity  
+
+        $issue = 'Concussion'  
+        $given_symptoms_list = ('Confusion', 'Headache', 'Nausea')
+
+        bc_cond_prob($issue, $given_symptoms_list, $uncertanity) 
+
+        $reason = 'Even though you are not sure about the patient\'s head injury, still due to showcasing symptoms like confusion, headache, and nausea, concussion might be the case.'  
+
+
+# No idea about Nausea
+concussion_diagnosis_normal_three  
+    use diagnosed_decease('Concussion', $uncertanity, $reason)  
+    when  
+        facts.activity('Head injury', $headInjuryCode)  
+        facts.symptom('Confusion', $confusionCode)  
+        facts.symptom('Headache', $headacheCode) 
+        facts.symptom('Nausea', $nauseaCode) 
+
+        questions.issue_type_question(1)  
+
+        questions.exposed_activity($activity)  
+        check $headInjuryCode in $activity  
+
+        questions.observed_symptoms($symptom)  
+        check $confusionCode in $symptom and $headacheCode in $symptom and $nauseaCode not in $symptom 
+
+        $issue = 'Concussion'  
+        $given_symptoms_list = ('Head injury', 'Confusion', 'Headache',) 
+
+        bc_cond_prob($issue, $given_symptoms_list, $uncertanity)  
+
+        $reason = 'Because the patient had a head injury and showcases symptoms like confusion and headache.'  
+
+
+#-------------------- bee sting diagnosis --------------------------------
+
+bee_sting_diagnosis_heuristic  
+    use diagnosed_decease('Bee Sting', 1, $reason)  
+    when  
+        facts.issue('Bee Sting', $beeStingCode)  
+        questions.issue_type_question($beeStingCode)  # Bee Sting  
+        $reason = " "  
+
+bee_sting_diagnosis_normal  
+    use diagnosed_decease('Bee Sting', $uncertanity, $reason)  
+    when  
+        facts.symptom('Swelling', $swellingCode)  
+        facts.symptom('Pain', $painCode)  
+
+        questions.issue_type_question(1)  # General Question about Stings  
+        questions.observed_symptoms($symptom)  
+        check $swellingCode in $symptom and $painCode in $symptom  
+
+        $issue = 'Bee Sting'  
+        $given_symptoms_list = ('Swelling', 'Pain',)  
+
+        bc_cond_prob($issue, $given_symptoms_list, $uncertanity)    
+
+        $reason = 'Because the patient showcases the symptoms of Swelling followed by pain'  
+
+
+# ------------- allergy diagnosis -------------------------
+
+
+allergic_diagnosis_heuristic  
+    use diagnosed_decease('Allergy', 1, $reason)  
+    when  
+        facts.issue('Allergy', $allergyCode)  
+        questions.issue_type_question($allergyCode)  # Allergy  
+        $reason = " "  
+
+allergic_diagnosis_normal_one  
+    use diagnosed_decease('Allergy', $uncertanity, $reason)  
+    when  
+        facts.symptom('Swelling', $swellingCode)  
+        facts.symptom('Breathing Difficulty', $breathingDifficultyCode)  
+        facts.symptom('Chest Pain', $chestPainCode)  
+
+        questions.issue_type_question(1)  # General question about symptoms  
+        questions.observed_symptoms($symptom)  
+        check $swellingCode in $symptom and $breathingDifficultyCode in $symptom and $chestPainCode in $symptom  
+ 
+
+        $issue = 'Allergy'  
+        $given_symptoms_list = ('Swelling', 'Breathing Difficulty', 'Chest Pain',)  
+
+        bc_cond_prob($issue, $given_symptoms_list, $uncertanity)  
+
+        $reason = 'Because the patient is showcasing Swellings followed by breathing difficulty and chest pain'  
+
+
+allergic_diagnosis_normal_two  
+    use diagnosed_decease('Allergy', $uncertanity, $reason)  
+    when  
+        facts.symptom('Swelling', $swellingCode)  
+        facts.symptom('Breathing Difficulty', $breathingDifficultyCode)  
+        facts.symptom('Chest Pain', $chestPainCode)  # Chest pain not in is checked here  
+
+        questions.issue_type_question(1)  # General question about symptoms  
+        questions.observed_symptoms($symptom)  
+        check $swellingCode in $symptom and $breathingDifficultyCode in $symptom and $chestPainCode not in $symptom  
+
+
+        $issue = 'Allergy'  
+        $given_symptoms_list = ('Swelling', 'Breathing Difficulty',)  
+
+        bc_cond_prob($issue, $given_symptoms_list, $uncertanity)  
+
+        $reason = 'Because the patient is showcasing Swellings followed by breathing difficulty'  
+
+
+# ------------- heart attack diagnosis -------------------------
+
+heart_attack_diagnosis_heuristic  
+    use diagnosed_decease('Heart Attack', 1, $reason)  
+    when  
+        facts.issue('Heart Attack', $heartAttackCode)  
+        questions.issue_type_question($heartAttackCode)  # Heart Attack  
+        $reason = " "  
+
+heart_attack_diagnosis  
+    use diagnosed_decease('Heart Attack', $uncertanity, $reason)  
+    when  
+        facts.symptom('Chest Pain', $chestPainCode)  
+        facts.symptom('Pain', $painCode)  
+        facts.symptom('Breathing Difficulty', $breathingDifficultyCode)  
+        facts.symptom('Sweating', $sweatingCode)  
+
+        questions.issue_type_question(1)  # General question about symptoms  
+        
+        questions.observed_symptoms($symptom)  
+        check $painCode in $symptom and $breathingDifficultyCode in $symptom  
+        check $sweatingCode in $symptom and $chestPainCode in $symptom  
+
+        python total_prob_of_denominator = 1  
+        python conditional_prob_numerator_conditional_prob_val = 1  
+
+        $issue = 'Heart Attack'  
+        $given_symptoms_list = ('Chest Pain', 'Pain', 'Breathing Difficulty', 'Sweating',)   
+
+        bc_cond_prob($issue, $given_symptoms_list, $uncertanity)   
+
+        $reason = 'Because chest pain followed by shortness of breath and sweating are major symptoms of a heart attack'  
+
+
+# ------------- hypothermia diagnosis -------------------------
+
+hypothermia_diagnosis_heuristic  
+    use diagnosed_decease('Hypothermia', 1, $reason)  
+    when  
+        facts.issue('Hypothermia', $hypothermiaCode)  
+        questions.issue_type_question($hypothermiaCode)  # Hypothermia  
+        $reason = " "  
+
+hypothermia_diagnosis_normal  
+    use diagnosed_decease('Hypothermia', $uncertanity, $reason)  
+    when  
+        facts.activity('Cold exposure', $coldExposureCode)  
+        facts.symptom('Shivering', $shiveringCode)  
+        facts.symptom('Slurred Speech', $slurredSpeechCode)  
+        facts.symptom('Confusion', $confusionCode)  
+
+        questions.issue_type_question(1)  # General question about exposure to cold  
+
+        questions.exposed_activity($activities)  
+        check $coldExposureCode in $activities  
+
+        questions.observed_symptoms($symptom)  
+        check $shiveringCode in $symptom and $slurredSpeechCode in $symptom  
+        check $confusionCode in $symptom  
+
+        $issue = 'Hypothermia'  
+        $given_symptoms_list = ('Cold exposure', 'Shivering', 'Slurred Speech', 'Confusion',)  
+
+        bc_cond_prob($issue, $given_symptoms_list, $uncertanity)  
+
+        $reason = 'Because the patient who experienced some cold exposure is showcasing symptoms like shivering, slurred speech, and confusion.'  
+
+
+# ------------- choking diagnosis -------------------------
+
+
+choking_diagnosis_heuristic  
+    use diagnosed_decease('Choking', 1, $reason)  
+    when  
+        facts.issue('Choking', $chokingCode)  
+        questions.issue_type_question($chokingCode)  # Choking  
+        $reason = " "  
+
+
+choking_diagnosis_normal  
+    use diagnosed_decease('Choking', $uncertanity, $reason)  
+    when  
+        facts.symptom('Breathing Difficulty', $breathingDifficultyCode)  
+        facts.symptom('Coughing', $coughingCode)  
+
+        questions.issue_type_question(1)  # General choking-related question  
+
+        questions.observed_symptoms($symptom)  
+        check $breathingDifficultyCode in $symptom and $coughingCode in $symptom    
+
+        $issue = 'Choking'  
+        $given_symptoms_list = ('Coughing', 'Breathing Difficulty',)  
+
+        bc_cond_prob($issue, $given_symptoms_list, $uncertanity)  
+
+        $reason = 'Because the patient is coughing and showing breathing difficulties.'  
+
+choking_treat_advice_normal
+    use first_aid('Choking', "Perform the Heimlich maneuver and seek emergency medical help if the obstruction is not cleared.")
+    when
+        facts.issue('Choking', $chokingCode) 
+        
+
+choking_treat_advice_alt
+    use first_aid('Choking', "Lean the person forward and firmly strike their back between the shoulder blades with the palm of your hand. Repeat up to five times or until the object is expelled.")
+    when
+        facts.issue('Choking', $chokingCode) 
+        
+
+snake_bite_diagnosis_heuristic  
+    use diagnosed_decease('Snake Bite', 1, $reason)  
+    when  
+        facts.issue('Snake Bite', $snakeBiteCode)  
+        questions.issue_type_question($snakeBiteCode)  # Snake Bite  
+        $reason = " "  
+snake_bite_diagnosis_normal  
+    use diagnosed_decease('Snake Bite', $uncertanity, $reason)  
+    when  
+        facts.symptom('Puncture Wound', $punctureCode)  
+        facts.symptom('Swelling', $swellingCode)  
+        facts.symptom('Discoloration', $discolorationCode)  
+
+        questions.issue_type_question(1)  # General question about bites  
+
+        questions.observed_symptoms($symptom)  
+        check $punctureCode in $symptom and $swellingCode in $symptom and $discolorationCode in $symptom   
+
+        $issue = 'Snake Bite'  
+        $given_symptoms_list = ('Puncture Wound', 'Swelling', 'Discoloration',)  
+
+        bc_cond_prob($issue, $given_symptoms_list, $uncertanity)
+
+        $reason = "Because the patient has a puncture wound, swellings, and discoloration."  
+
+
+
+
+
+
+
+
+
+# -------------------- Bayes theorem rule -----------------------------------------------
+
+conditional_probability
+    use bc_cond_prob($issue, $given_symptoms_list, $uncertanity)
+    when
+        python total_prob_of_denominator = 1  
+        python conditional_prob_numerator_conditional_prob_val = 1 
+
+        facts.probability($given_symptoms_list, $val)  
+        python total_prob_of_denominator = $val  
+        
+        forall  
+            facts.cond_probability($given_symptom_name, $issue, $val2)  
+            check $given_symptom_name in $given_symptoms_list  
+            python conditional_prob_numerator_conditional_prob_val = conditional_prob_numerator_conditional_prob_val * $val2 
+        
+        facts.probability($issue, $issue_prob)  
+
+        python uncertanity = float($issue_prob * conditional_prob_numerator_conditional_prob_val) / total_prob_of_denominator  
+        $uncertanity = float(uncertanity)  
+
+
+missing_equipment_check
+    use missing_equipment($issue, $missing_equip_list)
+    when
+        questions.first_aid_equipment($having_equipments_code_list)
+
+        python required_equipments_code_list = []
+        forall
+            facts.issue_to_equipment($issue, $required_equipments_code)
+            python required_equipments_code_list.append($required_equipments_code)
+
+        python having_equipments = []
+        forall
+            facts.equipment($equipment, $equipmentCode)
+            check $equipmentCode in $having_equipments_code_list
+            python having_equipments.append($equipment)
+
+        python required_equipment_list = []
+        forall
+            facts.equipment($equipment, $equipmentCode)
+            check $equipmentCode in required_equipments_code_list
+            python required_equipment_list.append($equipment)
+
+        python missing_equip_list = [item for item in required_equipment_list if item not in having_equipments]
+        $missing_equip_list = list(missing_equip_list)
+
+
+outdoor_cut_advice
+    use location_advice('Cut', $advice)
+    when
+        facts.issue('Cut', $cutCode) 
+        facts.location_to_code('Outdoor', $outdoorCode)
+
+
+        questions.current_location($outdoorCode)          # Outdoor
+        #questions.issue_type_question($cutCode)           # Cut
+
+        $advice = "In outdoor locations, ensure the area is safe from further injury sources and sanitize hands if possible before administering first aid."
+
+workplace_burn_advice
+    use location_advice('Burn', "In the workplace, assess any surrounding hazards, and contact the onsite medical team if available.")
+    when
+        facts.issue('Burn', $burnCode) 
+        facts.location_to_code('Workplace', $workplaceCode)
+
+        questions.current_location($workplaceCode)        # Workplace
+        questions.issue_type_question($burnCode)          # Burn

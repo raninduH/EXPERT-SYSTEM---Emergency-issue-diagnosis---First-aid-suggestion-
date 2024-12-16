@@ -1,0 +1,308 @@
+# Rules for First Aid Actions Based on User Responses
+
+symptom_mapping = {
+    'bleeding': 1,
+    'swelling': 2,
+    'bruising': 3,
+    'pain': 4,
+    # Add other symptoms as needed
+}
+
+equipment_mapping = {
+    'Bandages': 1,
+    'Water': 2,
+    'Antiseptic': 3,
+    'Pain Relief': 4,
+    'Cold Compress':5,
+    'Splint':6,
+    # Add other symptoms as needed
+}
+
+no_symptoms_observed
+    foreach
+        krb_traceback("Observed symptoms: $ans")
+        questions.observed_symptoms($ans)
+        krb_traceback("Observed symptoms: $ans")
+        check len($ans) == 0
+    assert 
+        facts.first_aid(none, "No symptoms observed; no first aid necessary.")
+
+treat_cut
+    foreach
+        questions.injury_type_question($ans)          # Cut
+        check $ans in (1,)
+        questions.observed_symptoms($symptom)      
+        check any(item in $symptom for item in {symptom_mapping['bleeding']}) # Check if 'bleeding' is in observed symptoms
+        questions.first_aid_equipment($equipment)
+        check 1 in $equipment and 3 in $equipment
+    assert 
+        facts.first_aid(cut, "Clean the wound, apply antiseptic, and bandage it to stop bleeding.")
+
+
+
+
+treat_burn
+    foreach
+        questions.injury_type_question(2)          # Burn
+        questions.observed_symptoms($symptom)
+        check 'burning_sensation' in $symptom
+        questions.first_aid_equipment($equipment)
+        check 'water' in $equipment
+    assert 
+        first_aid(burn, "Cool the burn under running water for 10 minutes and cover with a sterile dressing.")
+
+treat_fracture
+    foreach
+        questions.injury_type_question(3)          # Fracture
+        questions.observed_symptoms($symptom)
+        check 'pain' in $symptom and 'swelling' in $symptom
+        questions.first_aid_equipment($equipment)
+        check 'splint' in $equipment
+    assert 
+        first_aid(fracture, "Immobilize the limb using a splint and seek medical help immediately.")
+
+treat_shock
+    foreach
+        questions.injury_type_question(6)          # Shock
+        questions.observed_symptoms($symptom)
+        check 'dizziness' in $symptom and 'weak_pulse' in $symptom
+    assert 
+        first_aid(shock, "Lay the person down, keep them warm, and elevate their legs if possible.")
+
+# Location-Based Guidance Rules
+
+outdoor_cut_guidance
+    foreach
+        questions.current_location(2)              # Outdoor
+        questions.injury_type_question(1)          # Cut
+    assert 
+        location_advice("In outdoor locations, ensure the area is safe from further injury sources and sanitize hands if possible before administering first aid.")
+
+workplace_burn_guidance
+    foreach
+        questions.current_location(3)              # Workplace
+        questions.injury_type_question(2)          # Burn
+    assert 
+        location_advice("In the workplace, assess any surrounding hazards, and contact the onsite medical team if available.")
+
+
+
+#----------------------------------------------------------------------------------------------------
+
+
+# Rules for First Aid Actions Based on User Responses
+
+no_symptoms_observed
+    foreach
+        questions.observed_symptoms($ans)
+        check len($ans) == 0
+    assert 
+        facts.first_aid(none, "No symptoms observed; no first aid necessary.")
+
+treat_cut
+    foreach
+        #retrieving the specific codes for variables
+
+        facts.injury_to_code('Cut',$cutCode) 
+        facts.symptom_to_code('bleeding', $bleedingCode)  
+        facts.equipment_to_code('Bandages', $bandagesCode)
+        facts.equipment_to_code('Antiseptic', $AntisepticCode)
+
+
+        questions.injury_type_question($ans)          # Cut
+        check $ans in ($cutCode,)
+        questions.observed_symptoms($symptom)  
+        check $bleedingCode in $symptom   
+        #check any(item in $symptom for item in {symptom_mapping['bleeding']}) # Check if 'bleeding' is in observed symptoms
+        questions.first_aid_equipment($equipment)
+        check $bandagesCode in $equipment and $AntisepticCode in $equipment
+    assert 
+        facts.first_aid(cut, "Clean the wound, apply antiseptic, and bandage it to stop bleeding.")
+
+treat_burn
+    foreach
+        #retrieving the specific codes for variables
+
+        facts.injury_to_code('Burn',$burnCode) 
+        facts.symptom_to_code('Burning Sensation', $burningSensationCode)  
+        facts.equipment_to_code('Water', $waterCode)
+
+        questions.injury_type_question(2)          # Burn
+        questions.observed_symptoms($symptom)
+        check $burningSensationCode in $symptom
+        questions.first_aid_equipment($equipment)
+        check $waterCode in $equipment
+    assert 
+        facts.first_aid(burn, "Cool the burn under running water for 10 minutes and cover with a sterile dressing.")
+
+treat_fracture
+    foreach
+        questions.injury_type_question(3)          # Fracture
+        questions.observed_symptoms($symptom)
+        check 'pain' in $symptom and 'swelling' in $symptom
+        questions.first_aid_equipment($equipment)
+        check 'splint' in $equipment
+    assert 
+        facts.first_aid(fracture, "Immobilize the limb using a splint and seek medical help immediately.")
+
+treat_shock
+    foreach
+        questions.injury_type_question(6)          # Shock
+        questions.observed_symptoms($symptom)
+        check 'dizziness' in $symptom and 'weak_pulse' in $symptom
+    assert 
+        facts.first_aid(shock, "Lay the person down, keep them warm, and elevate their legs if possible.")
+
+# Location-Based Guidance Rules
+
+outdoor_cut_guidance
+    foreach
+        questions.current_location(2)              # Outdoor
+        questions.injury_type_question(1)          # Cut
+    assert 
+        facts.location_advice("In outdoor locations, ensure the area is safe from further injury sources and sanitize hands if possible before administering first aid.")
+
+workplace_burn_guidance
+    foreach
+        questions.current_location(3)              # Workplace
+        questions.injury_type_question(2)          # Burn
+    assert 
+        facts.location_advice("In the workplace, assess any surrounding hazards, and contact the onsite medical team if available.")
+
+
+cut_treat_heuristic
+    foreach
+        facts.issue('Cut',$cutCode) 
+        questions.issue_type_question($cutCode)          # Cut
+        facts.equipment('Bandages', $bandagesCode)
+        facts.equipment('Antiseptic', $AntisepticCode)
+
+        questions.first_aid_equipment($equipment)
+        check $bandagesCode in $equipment and $AntisepticCode in $equipment
+
+    assert 
+        facts.first_aid(cut, "Clean the wound, apply antiseptic, and bandage it to stop bleeding.")
+
+
+
+
+
+uncertanity_deduction
+    foreach
+        python total_prob_of_denominator = 1
+        python conditional_prob_numerator_conditional_prob_val = 1
+
+
+        forall
+            facts.probability($given_symptom, $val)
+            python print($given_symptom)
+            check $given_symptom in $given_symptoms1
+            python total_prob_of_denominator = total_prob_of_denominator * $val
+        python print(total_prob_of_denominator)
+        
+        forall
+            facts.cond_probability($given_symptom, $issue, $val)
+            check $given_symptom in $given_symptoms1
+            python conditional_prob_numerator_conditional_prob_val = conditional_prob_numerator_conditional_prob_val * $val
+        python print(conditional_prob_numerator_conditional_prob_val)
+            
+        facts.probability($issue, $issue_prob)
+
+        python print($issue_prob)
+        python uncertanity = float($issue_prob*conditional_prob_numerator_conditional_prob_val)/total_prob_of_denominator
+
+        python print(uncertanity)
+    assert
+
+        facts.conditional_probability($issue, $given_symptoms1, uncertanity)
+
+
+
+
+
+uncertanity_deduction_two
+    foreach
+        python total_prob_of_denominator = 1
+        python conditional_prob_numerator_conditional_prob_val = 1
+
+        questions.observed_symptoms($given_symptoms_codes)
+
+        python given_syptom_names = []
+        forall
+            facts.symptom($given_symptom_name, $given_symptom_code) 
+            check $given_symptom_code in $given_symptoms_codes
+            facts.probability($given_symptom_name, $val)
+            python print($given_symptom_name)
+            python given_syptom_names.append($given_symptom_name)
+            python total_prob_of_denominator = total_prob_of_denominator * $val
+        python print(total_prob_of_denominator)
+        
+        forall
+            check $given_symptom_code in $given_symptoms_codes
+            facts.symptom($given_symptom_name, $given_symptom_code) 
+            facts.cond_probability($given_symptom_name, $issue, $val)
+            python conditional_prob_numerator_conditional_prob_val = conditional_prob_numerator_conditional_prob_val * $val
+        python print(conditional_prob_numerator_conditional_prob_val)
+            
+        facts.probability($issue, $issue_prob)
+
+        python given_syptom_names_tuple = tuple(given_syptom_names)
+
+        python print($issue_prob)
+        python uncertanity = float($issue_prob*conditional_prob_numerator_conditional_prob_val)/total_prob_of_denominator
+
+        python print(uncertanity)
+    assert
+
+        facts.conditional_probability($issue, $given_symptoms_codes, uncertanity)
+
+
+        #facts.cond_probability('Cut', ('Bleeding',), $uncertanity)
+        #facts.conditional_probability('Cut', ('Bleeding',), $uncertanity)
+
+
+
+                python total_prob_of_denominator = 1
+        python conditional_prob_numerator_conditional_prob_val = 1
+
+        $issue = 'Fracture'
+        $given_symptoms_list = ('Swelling','Pain', 'Deformity',)
+
+        facts.probability($given_symptoms_list, $denominater_val)
+
+        forall
+            facts.cond_probability($given_symptom_name, $issue, $val)
+            check $given_symptom_name in $given_symptoms_list
+            python conditional_prob_numerator_conditional_prob_val = conditional_prob_numerator_conditional_prob_val * $val
+
+        facts.probability($issue, $issue_prob)
+
+        python uncertanity  = float($issue_prob*conditional_prob_numerator_conditional_prob_val)/$denominater_val
+
+        $uncertanity = float(uncertanity)
+
+
+
+
+
+# 28-11 dump
+
+
+        python total_prob_of_denominator = 1  
+        python conditional_prob_numerator_conditional_prob_val = 1  
+
+        $issue = 'Cut'  
+        $given_symptoms_list = ('Bleeding',)  
+
+        facts.probability($given_symptoms_list, $val)  
+        python total_prob_of_denominator = $val  
+
+        forall  
+            facts.cond_probability($given_symptom_name, $issue, $val2)  
+            check $given_symptom_name in $given_symptoms_list  
+            python conditional_prob_numerator_conditional_prob_val = conditional_prob_numerator_conditional_prob_val * $val2  
+
+        facts.probability($issue, $issue_prob)  
+
+        python uncertanity = float($issue_prob * conditional_prob_numerator_conditional_prob_val) / total_prob_of_denominator  
+        $uncertanity = float(uncertanity)  

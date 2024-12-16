@@ -1,0 +1,216 @@
+injury_type(cut)
+injury_type(burn)
+injury_type(fracture)
+injury_type(sprain)
+injury_type(bruise)
+injury_type(bite)
+injury_type(shock)
+
+symptom(bleeding)
+symptom(swelling)
+symptom(bruising)
+symptom(breathing_difficulty)
+symptom(pain)
+symptom(burning_sensation)
+symptom(dizziness)
+symptom(weak_pulse)
+
+# Location facts
+location(home)
+location(outdoor)
+location(workplace)
+location(sporting_event)
+
+# Equipment availability facts
+equipment_available(bandages)
+equipment_available(water)
+equipment_available(antiseptic)
+equipment_available(pain_relief)
+equipment_available(cold_compress)
+equipment_available(splint)
+
+issue('None',1)
+issue('Cut',2)
+issue('Burn',3)
+issue('Fracture',4)
+issue('Sprain',5)
+issue('Bite',6)
+issue('Shock',7)
+issue('Bruise',8)
+issue('Concussion',9)
+issue('Allergy',10)
+issue('Heart Attack',11)
+issue('Hypothermia',12)
+issue('Choking',13)
+issue('Bee Sting', 14)
+issue('Snake Bite', 15)
+
+
+symptom('Bleeding', 1)
+symptom('Swelling', 2)
+symptom('Bruising', 3)
+symptom('Breathing Difficulty', 4)
+symptom('Pain', 5)
+symptom('Burning Sensation', 6)
+symptom('Dizziness', 7)
+symptom('Weak Pulse', 8)
+symptom('Deformity', 9)
+symptom('Confusion', 10)
+symptom('Headache', 11)
+symptom('Nausea', 12)
+symptom('Chest Pain', 13)
+symptom('Sweating', 14)
+symptom('Shivering', 15)
+symptom('Slurred Speech', 16)
+symptom('Coughing', 17)
+symptom('Puncture Wound', 18)
+symptom('Discoloration', 19)
+
+
+equipment('Bandages', 1)
+equipment('Water', 2)
+equipment('Antiseptic', 3)
+equipment('Pain Relief', 4)
+equipment('Cold Compress', 5)
+equipment('Splint', 6)
+equipment('EpiPen', 7)
+equipment('Ice Pack', 8)
+equipment('Antihistamine', 9)
+equipment('Elastic Bandage', 10)
+equipment('Asprin', 11)
+equipment('Dry Cloth', 12)
+equipment('Non-stick gauze pad', 13)
+
+
+
+location_to_code('Home', 1)
+location_to_code('Outdoor', 2)
+location_to_code('Workplace', 3)
+location_to_code('Sporting Event', 4)
+location_to_code('Wilderness', 5)
+
+
+activity('No idea',1)
+activity('Head injury',2)
+activity('Cold exposure', 3)
+
+issue_to_equipment('Cut',1)
+issue_to_equipment('Cut',3)
+issue_to_equipment('Burn',2)
+issue_to_equipment('Burn',12)
+issue_to_equipment('Burn',13)
+issue_to_equipment('Allergy',7)
+issue_to_equipment('Snake Bite',10)
+issue_to_equipment('Snake Bite',8)
+issue_to_equipment('Fracture',6)
+issue_to_equipment('Bee Sting',8)
+issue_to_equipment('Bee Sting',9)
+issue_to_equipment('Heart Attack',11)
+
+
+
+probability(('Bleeding',), 0.7) 
+probability('Cut', 0.74)
+cond_probability('Bleeding', 'Cut', 0.9)
+
+probability(('Burning Sensation',), 0.75)
+probability('Burn', 0.6)
+cond_probability('Burning Sensation', 'Burn', 0.9)
+
+probability(('Swelling', 'Pain','Deformity',), 0.47)
+probability(('Swelling', 'Pain',), 0.62)
+probability('Fracture', 0.69)
+
+cond_probability('Swelling', 'Fracture', 0.7)
+cond_probability('Pain', 'Fracture', 0.9)
+cond_probability('Deformity', 'Fracture', 0.85)
+
+probability('Bee Sting', 0.4)
+cond_probability('Swelling', 'Bee Sting', 0.6)
+cond_probability('Pain', 'Bee Sting', 0.8)
+
+
+probability(('Dizziness','Weak Pulse',), 0.6)
+probability('Shock', 0.86)
+cond_probability('Dizziness', 'Shock', 0.9)
+cond_probability('Weak Pulse', 'Shock', 0.75)
+
+probability(('Head injury', 'Confusion', 'Headache', 'Nausea',), 0.1)
+probability(('Confusion', 'Headache', 'Nausea',), 0.4)
+probability(('Head injury', 'Confusion', 'Headache',), 0.2)
+probability('Concussion', 0.86)
+cond_probability('Head injury', 'Concussion', 0.48)
+cond_probability('Confusion', 'Concussion', 0.4)
+cond_probability('Headache', 'Concussion', 0.9)
+cond_probability('Nausea', 'Concussion', 0.6)
+cond_probability('Weak Pulse', 'Concussion', 0.55)
+
+
+
+probability(('Swelling','Breathing Difficulty','Chest Pain',), 0.42)
+probability(('Swelling','Breathing Difficulty',), 0.67)
+probability('Allergy', 0.88)
+cond_probability('Swelling', 'Allergy', 0.9)
+cond_probability('Breathing Difficulty', 'Allergy', 0.68)
+cond_probability('Chest Pain', 'Allergy', 0.7)
+
+
+probability(('Puncture Wound','Swelling','Discoloration',), 0.6)
+probability('Snake Bite', 0.66)
+cond_probability('Puncture Wound', 'Snake Bite', 0.95)
+cond_probability('Swelling', 'Snake Bite', 0.96)
+cond_probability('Discoloration', 'Snake Bite', 0.9)
+
+probability(('Chest Pain', 'Pain', 'Breathing Difficulty', 'Sweating',), 0.6)
+probability('Heart Attack', 0.76)
+cond_probability('Chest Pain', 'Heart Attack', 0.95)
+cond_probability('Pain', 'Heart Attack', 0.96)
+cond_probability('Breathing Difficulty', 'Heart Attack', 0.9)
+cond_probability('Sweating', 'Heart Attack', 0.9)
+
+probability(('Cold exposure', 'Shivering', 'Slurred Speech', 'Confusion',)  , 0.54)
+probability('Hypothermia', 0.69)
+cond_probability('Cold exposure', 'Hypothermia', 0.95)
+cond_probability('Shivering', 'Hypothermia', 0.96)
+cond_probability('Slurred Speech', 'Hypothermia', 0.9)
+cond_probability('Confusion', 'Hypothermia', 0.8)
+
+probability(('Coughing', 'Breathing Difficulty',)   , 0.8)
+probability('Choking', 0.799)
+cond_probability('Coughing', 'Choking', 0.99)
+cond_probability('Breathing Difficulty', 'Choking', 0.989)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+cond_probability('Cut',('Bleeding',), 0.95)
+cond_probability('Burn', ('Burning Sensation',), 0.9)
+cond_probability('Fracture', ('Swelling','Pain', 'Deformity',), 0.9)
+cond_probability('Fracture', ('Swelling','Bruising',), 0.55)
+cond_probability('Shock', ('Dizziness','Weak Pulse',), 0.85)
+cond_probability('Concussion', ('Head injury','Confusion','Headache','Nausea',), 0.97)
+cond_probability('Concussion', ('Confusion','Headache','Nausea',), 0.80)
+cond_probability('Concussion', ('Head injury','Confusion','Headache',), 0.85)
+cond_probability('Bee Sting', ('Swelling','Pain',), 0.75)
+cond_probability('Allergy', ('Swelling','Breathing Difficulty',), 0.87)
+cond_probability('Allergy', ('Swelling','Breathing Difficulty','Chest Pain',), 0.92)
+cond_probability('Heart Attack', ('Chest Pain','Pain','Breathing Difficulty','Sweating',), 0.95)
+cond_probability('Hypothermia', ('Cold exposure','Shivering','Slurred Speech','Confusion',), 0.97)
+cond_probability('Choking', ('Breathing Difficulty','Coughing',), 0.85)
+cond_probability('Choking', ('Puncture Wound','Swelling','Discoloration',), 0.8)
+
